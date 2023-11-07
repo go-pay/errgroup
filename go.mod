@@ -1,8 +1,8 @@
 module github.com/go-pay/errgroup
 
-go 1.20.0
+go 1.20
 
-require github.com/go-pay/xlog v0.0.0-20231104134525-b6ce65b7e035
+require github.com/go-pay/xlog v0.0.1
 
 require (
 	go.uber.org/multierr v1.11.0 // indirect
