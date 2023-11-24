@@ -3,11 +3,10 @@ package errgroup
 import (
 	"context"
 	"errors"
+	"log"
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/go-pay/xlog"
 )
 
 func TestErrgroup(t *testing.T) {
@@ -34,14 +33,13 @@ func TestErrgroup(t *testing.T) {
 	if err := eg.Wait(); err != nil {
 		// do some thing
 		count = countBackup
-		xlog.Error(err)
+		log.Println(err)
 		//return
 	}
-	xlog.Debug(count)
+	log.Println(count)
 }
 
 func TestErrgroupLimit1(t *testing.T) {
-	xlog.Level = xlog.DebugLevel
 	var (
 		eg    Group
 		goNum = 3 // every times run goNum goroutine
@@ -50,25 +48,24 @@ func TestErrgroupLimit1(t *testing.T) {
 		var count = int64(i)
 		eg.Go(func(ctx context.Context) error {
 			atomic.AddInt64(&count, 1)
-			xlog.Debug("count:", count)
+			log.Println("count:", count)
 			return nil
 		})
 		if eg.WorkNum() == goNum {
 			if err := eg.Wait(); err != nil {
-				xlog.Error("err1:", err)
+				log.Println("err1:", err)
 				// to do something you need
 			}
-			xlog.Info("wait")
+			log.Println("wait")
 			time.Sleep(time.Second)
 		}
 	}
 	if err := eg.Wait(); err != nil {
-		xlog.Error("err2:", err)
+		log.Println("err2:", err)
 	}
 }
 
 func TestErrgroupLimit2(t *testing.T) {
-	xlog.Level = xlog.DebugLevel
 	var (
 		eg Group
 	)
@@ -77,13 +74,13 @@ func TestErrgroupLimit2(t *testing.T) {
 		var count = int64(i)
 		eg.Go(func(ctx context.Context) error {
 			atomic.AddInt64(&count, 1)
-			xlog.Debug("count:", count)
+			log.Println("count:", count)
 			time.Sleep(time.Second * 3)
 			return nil
 		})
 	}
 	if err := eg.Wait(); err != nil {
-		xlog.Error("err2:", err)
+		log.Println("err2:", err)
 	}
 }
 
@@ -95,9 +92,9 @@ func timeSleep1(c context.Context) error {
 	}()
 	select {
 	case <-c.Done():
-		xlog.Infof("timeSleep1 cancel")
+		log.Println("timeSleep1 cancel")
 	case rsp := <-data:
-		xlog.Info(rsp)
+		log.Println(rsp)
 	}
 	return nil
 }
@@ -115,9 +112,9 @@ func timeTimeoutSleep3(c context.Context) error {
 	}()
 	select {
 	case <-c.Done():
-		xlog.Infof("timeSleep3 timeout")
+		log.Println("timeSleep3 timeout")
 	case rsp := <-data:
-		xlog.Info(rsp)
+		log.Println(rsp)
 	}
 	return nil
 }
@@ -130,9 +127,9 @@ func timeCancelSleep5(c context.Context) error {
 	}()
 	select {
 	case <-c.Done():
-		xlog.Infof("timeCancelSleep5 cancel")
+		log.Println("timeCancelSleep5 cancel")
 	case rsp := <-data:
-		xlog.Info(rsp)
+		log.Println(rsp)
 	}
 	return nil
 }
@@ -147,13 +144,12 @@ func timeTimeoutSleep5(c context.Context) error {
 	case <-c.Done():
 		return errors.New("timeTimeoutSleep5 timeout")
 	case rsp := <-data:
-		xlog.Info(rsp)
+		log.Println(rsp)
 	}
 	return nil
 }
 
 func TestErrgroupWithCancel(t *testing.T) {
-	xlog.Level = xlog.DebugLevel
 	var (
 		eg = WithCancel(context.Background())
 	)
@@ -163,14 +159,14 @@ func TestErrgroupWithCancel(t *testing.T) {
 	})
 	eg.Go(func(ctx context.Context) error {
 		if err := timeErrSleep3(ctx); err != nil {
-			xlog.Error(err)
+			log.Println(err)
 			return err
 		}
 		return nil
 	})
 	eg.Go(func(ctx context.Context) error {
 		if err := timeCancelSleep5(ctx); err != nil {
-			xlog.Errorf("err:%v", err)
+			log.Printf("err:%v", err)
 			return err
 		}
 		return nil
@@ -181,7 +177,6 @@ func TestErrgroupWithCancel(t *testing.T) {
 }
 
 func TestErrgroupWithTimeout(t *testing.T) {
-	xlog.Level = xlog.DebugLevel
 	var (
 		eg = WithTimeout(context.Background(), time.Second*4)
 	)
@@ -195,7 +190,7 @@ func TestErrgroupWithTimeout(t *testing.T) {
 	})
 	eg.Go(func(ctx context.Context) error {
 		if err := timeTimeoutSleep5(ctx); err != nil {
-			xlog.Errorf("err:%v", err)
+			log.Printf("err:%v", err)
 			return err
 		}
 		return nil
