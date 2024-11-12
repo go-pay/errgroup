@@ -41,6 +41,15 @@ func WithCancel(ctx context.Context) *Group {
 	return &Group{ctx: ctx, cancel: cancel}
 }
 
+// WithoutCancel create a new Group and an associated Context derived from ctx.
+// given function from Go will receive context derived from this ctx,
+// The derived Context is not canceled the first time a function passed to Go
+// returns a non-nil error or the first time Wait returns, whichever occurs
+// first.
+func WithoutCancel(ctx context.Context) *Group {
+	return &Group{ctx: context.WithoutCancel(ctx)}
+}
+
 // WithTimeout create a new Group and an associated Context derived from ctx.
 // given function from Go will receive context derived from this ctx,
 // The derived Context is canceled when the timeout expires
